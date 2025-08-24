@@ -5,6 +5,7 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'maven-publish'
 
     dependencies {
         testImplementation 'org.mockito:mockito-core:5.19.0'
@@ -12,6 +13,25 @@ subprojects {
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    }
+
+    publishing {
+        repositories {
+            mavenLocal()
+            maven {
+                name = 'GitHubPackages'
+                url = uri 'https://maven.pkg.github.com/nickkalgin/lesch'
+                credentials {
+                    username = project.findProperty('github.user')
+                    password = project.findProperty('github.token')
+                }
+            }
+        }
+        publications {
+            library(MavenPublication) {
+                from components.java
+            }
+        }
     }
 
     tasks.withType(Jar) {
