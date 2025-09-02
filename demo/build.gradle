@@ -7,4 +7,23 @@ application {
 }
 
 dependencies {
+    implementation project(':core')
+    implementation 'info.picocli:picocli:4.7.7'
+    annotationProcessor 'info.picocli:picocli-codegen:4.7.7'
+}
+
+compileJava {
+    options.compilerArgs += ["-Aproject=${project.group}/${project.name}"]
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            artifact(tasks.named('distZip')) {
+                classifier = 'distribution'
+            }
+        }
+    }
 }
