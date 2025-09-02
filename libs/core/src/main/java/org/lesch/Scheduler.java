@@ -1,4 +1,10 @@
 package org.lesch;
 
-public class Scheduler {
+import java.util.List;
+
+public interface Scheduler {
+
+    String schedule(String name, Job job);
+
+    List<Job> list();
 }
