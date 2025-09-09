@@ -1,47 +1,49 @@
 package org.lesch.aws;
 
-import org.lesch.Job;
-import org.lesch.Lambda;
 import software.amazon.awssdk.services.scheduler.model.ScheduleState;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class AwsJob implements Job {
+/**
+ * Scheduled task representation.
+ */
+public class AwsJob {
+    public enum State {
+        ENABLED, DISABLED, UNKNOWN
+    }
+
+    public enum Repeat {
+        ONCE, MINUTES, HOURS, DAYS
+    }
 
     private final String id;
     private final ScheduleState state;
-    private final Lambda lambda;
-    private Repeat mode;
+    private final Target target;
+    private Repeat repeatKind;
+
     private int repeatRate;
 
-    public AwsJob(String id, Lambda lambda) {
-        this(id, ScheduleState.ENABLED, lambda);
-        mode = Repeat.ONCE;
+    public AwsJob(String id, Repeat repeatKind, int repeatRate, Target target) {
+        this(id, ScheduleState.ENABLED, target);
+        this.repeatKind = repeatKind;
+        this.repeatRate = repeatRate;
     }
 
-    public AwsJob(String id, Repeat repeat, int value, Lambda lambda) {
-        this(id, ScheduleState.ENABLED, lambda);
-        mode = repeat;
-        repeatRate = value;
-    }
-
-    public AwsJob(String id, ScheduleState state, Lambda lambda) {
+    public AwsJob(String id, ScheduleState state, Target target) {
         Objects.requireNonNull(id, "Job ID cannot be null");
         Objects.requireNonNull(state, "Job state cannot be null");
-        Objects.requireNonNull(lambda, "Job code cannot be null");
+        Objects.requireNonNull(target, "Job code cannot be null");
 
         this.id = id;
         this.state = state;
-        this.lambda = lambda;
+        this.target = target;
     }
 
-    @Override
     public String id() {
         return id;
     }
 
-    @Override
     public State state() {
         return switch (state) {
             case ENABLED -> State.ENABLED;
@@ -50,14 +52,12 @@ public class AwsJob implements Job {
         };
     }
 
-    @Override
-    public Lambda lambda() {
-        return lambda;
+    public Target target() {
+        return target;
     }
 
-    @Override
     public String scheduleExpression() {
-        return switch (mode) {
+        return switch (repeatKind) {
             case ONCE -> "at(%s)".formatted(LocalDateTime.now());
             case MINUTES -> "rate(%s minute)".formatted(repeatRate);
             case HOURS -> "rate(%s hour)".formatted(repeatRate);
@@ -67,6 +67,6 @@ public class AwsJob implements Job {
 
     @Override
     public String toString() {
-        return "AwsJob{id='%s', state=%s, lambda=%s}".formatted(id, state, lambda);
+        return "AwsJob{id='%s', state=%s, lambda=%s}".formatted(id, state, target);
     }
 }

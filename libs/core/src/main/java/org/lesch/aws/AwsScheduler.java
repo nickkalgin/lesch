@@ -1,7 +1,6 @@
 package org.lesch.aws;
 
-import org.lesch.Job;
-import org.lesch.Scheduler;
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.scheduler.SchedulerClient;
 import software.amazon.awssdk.services.scheduler.model.*;
 
@@ -9,12 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class AwsScheduler implements Scheduler {
+/**
+ * Schedules a job to execute as Lambda and reads all the schedules.
+ */
+public class AwsScheduler {
 
     private final SchedulerClient client;
-    private final String invokeTargetRoleArn;
+    private final Arn invokeTargetRoleArn;
 
-    public AwsScheduler(SchedulerClient client, String invokeTargetRoleArn) {
+    public AwsScheduler(SchedulerClient client, Arn invokeTargetRoleArn) {
         Objects.requireNonNull(client, "SchedulerClient cannot be null");
         Objects.requireNonNull(invokeTargetRoleArn, "Role ARN cannot be null");
 
@@ -22,11 +24,10 @@ public class AwsScheduler implements Scheduler {
         this.invokeTargetRoleArn = invokeTargetRoleArn;
     }
 
-    @Override
-    public String schedule(String name, Job job) {
-        var target = Target.builder()
-                .arn(job.lambda().id())
-                .roleArn(invokeTargetRoleArn)
+    public String schedule(String name, AwsJob job) throws ResourceAlreadyExists {
+        var target = software.amazon.awssdk.services.scheduler.model.Target.builder()
+                .arn(job.target().id())
+                .roleArn(invokeTargetRoleArn.toString())
                 .build();
         var ftw = FlexibleTimeWindow.builder().mode(FlexibleTimeWindowMode.OFF).build();
         var req = CreateScheduleRequest.builder()
@@ -34,29 +35,22 @@ public class AwsScheduler implements Scheduler {
                 .target(target)
                 .flexibleTimeWindow(ftw)
                 .state(ScheduleState.ENABLED)
-                .scheduleExpression(job.scheduleExpression());
+                .scheduleExpression(job.scheduleExpression())
+                .build();
         try {
-            var res = client.createSchedule(req.build());
+            var res = client.createSchedule(req);
             return res.scheduleArn();
         } catch (ConflictException e) {
-            var res = client.updateSchedule(u -> u
-                    .name(name)
-                    .target(target)
-                    .flexibleTimeWindow(ftw)
-                    .state(ScheduleState.ENABLED)
-                    .scheduleExpression(job.scheduleExpression())
-            );
-            return res.scheduleArn();
+            throw new ResourceAlreadyExists(e);
         }
     }
 
-    @Override
-    public List<Job> list() {
+    public List<AwsJob> schedules() {
         var req = ListSchedulesRequest.builder().build();
         var res = client.listSchedules(req);
-        List<Job> jobs = new ArrayList<>();
+        List<AwsJob> jobs = new ArrayList<>();
         for (var s : res.schedules()) {
-            jobs.add(new AwsJob(s.arn(), s.state(), new AwsLambda(s.target().arn())));
+            jobs.add(new AwsJob(s.arn(), s.state(), new Target(s.target().arn())));
         }
         return jobs;
     }

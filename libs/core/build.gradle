@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation platform('software.amazon.awssdk:bom:2.32.29')
-    implementation 'software.amazon.awssdk:s3'
-    implementation 'software.amazon.awssdk:scheduler'
-    implementation 'software.amazon.awssdk:lambda'
+    api platform('software.amazon.awssdk:bom:2.32.29')
+    api 'software.amazon.awssdk:scheduler'
+    api 'software.amazon.awssdk:lambda'
+    api 'software.amazon.awssdk:s3'
 }
