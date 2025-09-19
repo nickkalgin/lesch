@@ -1,5 +1,6 @@
 package org.lesch.aws;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.regions.Region;
@@ -9,6 +10,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled
 class AwsSchedulerTest {
 
     SchedulerClient client = SchedulerClient.builder()

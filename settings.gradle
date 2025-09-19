@@ -6,8 +6,9 @@
  */
 
 rootProject.name = 'lesch'
-include 'eventbridge', 'demo'
+include 'eventbridge', 'sched', 'demo'
 project(':eventbridge').projectDir = file('libs/eventbridge')
+project(':sched').projectDir = file('libs/sched')
 
 dependencyResolutionManagement {
     repositories {

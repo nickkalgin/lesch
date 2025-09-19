@@ -1,5 +1,6 @@
 package org.lesch.aws;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.regions.Region;
@@ -13,6 +14,7 @@ import java.util.zip.ZipOutputStream;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@Disabled
 class AwsLambdaTest {
 
     Arn roleArn = Arn.fromString("arn:aws:iam::333687968997:role/TestLambdaExecutionRole");
